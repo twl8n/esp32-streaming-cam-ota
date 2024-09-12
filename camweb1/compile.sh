@@ -2,7 +2,8 @@
 
 # ota still wasn't not working
 # try again, maybe sketch was using outdated esp8266 code
-arduino-cli compile --clean --dump-profile -v -e --no-color --fqbn esp32:esp32:esp32cam --build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728 .
+# --dump-profile might be useful
+arduino-cli compile --clean -v -e --no-color --fqbn esp32:esp32:esp32cam --build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728 .
 
 # arduino-cli compile -e --no-color --fqbn esp32:esp32:esp32cam .
 

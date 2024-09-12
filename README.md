@@ -1,7 +1,7 @@
 #### todo
 
 - clean up test code, especially psram
-- enable OTA if possible
+x enable OTA 
   - arduino cli export compiled binary instead of -e which exports all build artifacts.
     like arduino ide sketch > export compiled binary
 - if we use OTA, is the programmer shield necessary? (aside from supplying 5V via USB)
@@ -13,23 +13,35 @@
 - (not practical) advertise the esp32 via ZeroConf/bonjour or something? (if connected to the wifi LAN)
 - are there any advantages to running freeRTOS? Like being able to run the camera on one core, and ota on the second core? 
 
-hostname esp32-6C725C
+#### command line OTA (over the air) wifi update?
 
-#### command line OTA over the air wifi update?
+Note that I'm using the arduino-cli. Text is more obvious, easier to document (I think), and easier to automate. All the arduino-cli commands have some equivalent in the Arduino IDE. My suggestion: learn to use Emacs, learn to use the command line, learn/use a good Linux/unix/BSD shell like zsh or bash. These examples are from a Mac, running zsh, but bash is close enough.
 
-- compile with -clean if you change --build-properties because some files are cached. This is true of partitions.csv
+Adding OTA to CameraWebServer crashes when the OTA tries to update the ESP32. Here is the diagnosis and fix.
 
-/private/var/folders/2m/m49tydvj599cf1yv8nk7f82m0000gn/T/arduino/sketches/17A8CF01606570ED251909C235DA3B34/partitions.csv
+tldr;
 
-- 
+```bash
+arduino-cli compile --clean -v -e --no-color --fqbn esp32:esp32:esp32cam --build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728 .
+```
 
-With the BasicOTA sketch, it worked when compiling with:
+The CameraWebServer example has a local file `partitions.csv` for unknown reasons. Perhaps to make room to save images or videos, or to emulate the `huge_app` partition. In any case, a local `partitions.csv` overrides build-property __and__ the compiler defaults to caching build artifacts (intermediate files created during compile and link).
+
+- compile with `--clean` if you change --build-properties because some files are cached. This is true of partitions.csv
+
+This copy of partitions.csv was cached, even after removing the local copy:
+
+`/private/var/folders/2m/m49tydvj599cf1yv8nk7f82m0000gn/T/arduino/sketches/17A8CF01606570ED251909C235DA3B34/partitions.csv`
+
+The BasicOTA sketch performed OTA when compiling with:
 
 `--build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728`
 
 ```bash
 arduino-cli compile -v -e --no-color --fqbn esp32:esp32:esp32cam --build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728 .
 ```
+
+Interestingly, my camweb1 sketch was able to do OTA after successfully uploading BasicOTA to the ESP32. This suggested that the problem was in the build/configuration, not the code. OTA only change the .ino.bin, and not the entire filesystem on the ESP32.
 
 The error below was caused by wrong partitions, then by cached partitions. Fix: use min_spiffs and compile with `--clean`
 
@@ -44,15 +56,11 @@ Uploading: [                                                            ] 0%
 Failed uploading: uploading error: exit status 1
 ```
 
-> arduino-cli compile -b esp32:esp32:esp32s2 sketch --build-property build.partitions=huge_app
-
-https://arduino.stackexchange.com/questions/93390/how-to-change-partition-scheme-with-arduino-cli
-
-Suggest:
---build-property build.custom_partitions=min_spiffs
+Suggest additional param for the compile command:
+`--build-property build.custom_partitions=min_spiffs`
 
 Might also need:
---build-property upload.maximum_size=3145728
+`--build-property upload.maximum_size=3145728`
 
 where upload.maximum.size is from boards.txt
 --
