@@ -1,3 +1,5 @@
+#### A minimal ESP32 camera server with OTA (over the air) updates.
+
 #### todo
 
 - clean up test code, especially psram
@@ -17,6 +19,8 @@ x enable OTA
 
 Note that I'm using the arduino-cli. Text is more obvious, easier to document (I think), and easier to automate. All the arduino-cli commands have some equivalent in the Arduino IDE. My suggestion: learn to use Emacs, learn to use the command line, learn/use a good Linux/unix/BSD shell like zsh or bash. These examples are from a Mac, running zsh, but bash is close enough.
 
+#### The OTA crash and solution
+
 Adding OTA to CameraWebServer crashes when the OTA tries to update the ESP32. Here is the diagnosis and fix.
 
 tldr;
@@ -24,6 +28,8 @@ tldr;
 ```bash
 arduino-cli compile --clean -v -e --no-color --fqbn esp32:esp32:esp32cam --build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728 .
 ```
+
+#### Detailed explanation
 
 The CameraWebServer example has a local file `partitions.csv` for unknown reasons. Perhaps to make room to save images or videos, or to emulate the `huge_app` partition. In any case, a local `partitions.csv` overrides build-property __and__ the compiler defaults to caching build artifacts (intermediate files created during compile and link).
 
