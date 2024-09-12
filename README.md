@@ -25,6 +25,8 @@ Adding OTA to CameraWebServer crashes when the OTA tries to update the ESP32. He
 
 tldr;
 
+Remove the file `partitions.csv` from the local folder, then compile with `--clean` and min_spiffs partitions.
+
 ```bash
 arduino-cli compile --clean -v -e --no-color --fqbn esp32:esp32:esp32cam --build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728 .
 ```
