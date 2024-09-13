@@ -265,7 +265,7 @@ https://stackoverflow.com/questions/65749587/what-does-stub-mean-in-the-context-
 
 ### camera settings from the camerawebserver app
 
-`
+```
 framesize_t frame_size;         /*!< Size of the output image: FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA  */
 int jpeg_quality;               /*!< Quality of JPEG output. 0-63 lower means higher quality  */
 size_t fb_count;                /*!< Number of frame buffers to be allocated. If more than one, then each frame will be acquired (double speed)  */
@@ -292,7 +292,7 @@ sensor resolution uxga 1600x1200
 offset 400 300
 window size 800 600
 output size 320 240
-`
+```
 
 --- 
 
