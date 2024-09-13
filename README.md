@@ -6,6 +6,9 @@ https://github.com/twl8n/garden-rov-arduino
 
 Another potential use is a rear view or backup camera for car or truck.
 
+My camweb1 sketch is minimal camera video streaming via wifi to a web browser. It is nice to be able to update the ESP32 via WiFi. Once the camera is installed in the UGV, there won't be a usb cable connection to my desktop computer.
+
+
 ### TODO
 
 - clean up test code, especially psram
@@ -23,8 +26,6 @@ x enable OTA
   second core?
 
 ### Command line OTA (over the air) wifi update
-
-My camweb1 is a minimal camera video streaming via wifi sketch. It is nice to be able to update the ESP32 via WiFi. Once the camera is installed in the UGV, there won't be a usb cable connection to my desktop computer.
 
 Note that I'm using the arduino-cli. Text is more obvious, easier to document (I think), and easier to automate. All the arduino-cli commands have some equivalent in the Arduino IDE. My suggestion: learn to use Emacs, learn to use the command line, learn/use a good Linux/unix/BSD shell like zsh or bash. These examples are from a Mac, running zsh, but bash is close enough.
 
@@ -296,7 +297,7 @@ output size 320 240
 
 --- 
 
-It doesn't make sense in my usecase for the ESP32 to be an AP (wifi access point). But if you want to run as
+It doesn't make sense in my use case for the ESP32 to be an AP (wifi access point). But if you want to run as
 AP, or maybe websockets over AP:
 
 https://github.com/Links2004/arduinoWebSockets/blob/master/examples/esp32/WebSocketServer/WebSocketServer.ino
