@@ -33,6 +33,10 @@ x Enable OTA
 
 ### Command line OTA (over the air) wifi update
 
+ESP8266 code defaults to port 8266 for the ota update. ESP32 code defaults to port 3232. Don't change the default ports. The arduino-cli doesn't support alternate ports, even though espota and esptools support alternate ports.
+
+Inside the sketch directories there are shell scripts for the compile, upload, ota upload, and monitor commands via arduino-cli.
+
 Note that I'm using the arduino-cli. Text is more obvious, easier to document (I think), and easier to automate. All the arduino-cli commands have some equivalent in the Arduino IDE. My suggestion: learn to use Emacs, learn to use the command line, learn/use a good Linux/unix/BSD shell like zsh or bash. These examples are from a Mac, running zsh, but bash is close enough.
 
 ### The OTA crash and solution
@@ -131,9 +135,8 @@ https://github.com/sigmdel/ESP32-CAM_OTA
 
 The file platforms.txt in root (or local?) directory controls build config.
 
-
-Local file partitions.csv probably overrides boards.txt.
-~/src/arduino-esp32/libraries/ESP32/examples/Camera/CameraWebServer
+Local file partitions.csv apparently overrides boards.txt, and that feature caused a bug.
+`~/src/arduino-esp32/libraries/ESP32/examples/Camera/CameraWebServer`
 
 ```
 > cat partitions.csv
@@ -144,7 +147,7 @@ app0,     app,   ota_0,   0x10000,  0x3d0000,
 fr,       data,        ,  0x3e0000, 0x20000,
 ```
 
-Starting ota update crashed the controller. Still crashing after using an esp32 example vs an esp8266 example 
+Starting ota update crashed the controller. Still crashing after using an esp32 example vs an esp8266 example. This was printed by the serial monitor:
 
 `abort() was called at PC 0x40081c61 on core 1`
 
