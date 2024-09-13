@@ -1,6 +1,12 @@
 #### A minimal ESP32 camera server with OTA (over the air) updates.
 
-#### todo
+I need video streaming with low latency. One use is for the gardenbot UGV.
+
+https://github.com/twl8n/garden-rov-arduino
+
+Another potential use is a rear view or backup camera.
+
+#### TODO
 
 - clean up test code, especially psram
 x enable OTA 
@@ -13,9 +19,10 @@ x enable OTA
 - any point in websockets?
 - (no) change to the esp32 being a wifi access point (AP)
 - (not practical) advertise the esp32 via ZeroConf/bonjour or something? (if connected to the wifi LAN)
-- are there any advantages to running freeRTOS? Like being able to run the camera on one core, and ota on the second core? 
+- are there any advantages to running freeRTOS? Like being able to run the camera on one core, and ota on the
+  second core?
 
-#### command line OTA (over the air) wifi update?
+#### Command line OTA (over the air) wifi update
 
 Note that I'm using the arduino-cli. Text is more obvious, easier to document (I think), and easier to automate. All the arduino-cli commands have some equivalent in the Arduino IDE. My suggestion: learn to use Emacs, learn to use the command line, learn/use a good Linux/unix/BSD shell like zsh or bash. These examples are from a Mac, running zsh, but bash is close enough.
 
@@ -25,7 +32,7 @@ Adding OTA to CameraWebServer crashes when the OTA tries to update the ESP32. He
 
 tldr;
 
-Remove the file `partitions.csv` from the local folder, then compile with `--clean` and min_spiffs partitions.
+Remove the file `partitions.csv` from the local folder, then compile with `--clean` and use min_spiffs partitions.
 
 ```bash
 arduino-cli compile --clean -v -e --no-color --fqbn esp32:esp32:esp32cam --build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728 .
@@ -33,15 +40,15 @@ arduino-cli compile --clean -v -e --no-color --fqbn esp32:esp32:esp32cam --build
 
 #### Detailed explanation
 
-The CameraWebServer example has a local file `partitions.csv` for unknown reasons. Perhaps to make room to save images or videos, or to emulate the `huge_app` partition. In any case, a local `partitions.csv` overrides build-property __and__ the compiler defaults to caching build artifacts (intermediate files created during compile and link).
+The CameraWebServer example has a local file `partitions.csv` for unknown reasons. Perhaps to make room to save images or videos, or to emulate the `huge_app` partition. In any case, a local `partitions.csv` overrides `--build-property` __and__ the compiler defaults to caching build artifacts (intermediate files created during compile and link).
 
-- compile with `--clean` if you change --build-properties because some files are cached. This is true of partitions.csv
+Compile with `--clean` if you change `--build-properties` because some files are cached. This is true of partitions.csv
 
 This copy of partitions.csv was cached, even after removing the local copy:
 
 `/private/var/folders/2m/m49tydvj599cf1yv8nk7f82m0000gn/T/arduino/sketches/17A8CF01606570ED251909C235DA3B34/partitions.csv`
 
-The BasicOTA sketch performed OTA when compiling with:
+To investigate the crash, I tried the BasicOTA sketch. It performed OTA when compiling with:
 
 `--build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728`
 
@@ -49,7 +56,7 @@ The BasicOTA sketch performed OTA when compiling with:
 arduino-cli compile -v -e --no-color --fqbn esp32:esp32:esp32cam --build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728 .
 ```
 
-Interestingly, my camweb1 sketch was able to do OTA after successfully uploading BasicOTA to the ESP32. This suggested that the problem was in the build/configuration, not the code. OTA only change the .ino.bin, and not the entire filesystem on the ESP32.
+Interestingly, my camweb1 sketch was able to do OTA after successfully uploading BasicOTA to the ESP32. This suggested that the problem was in the build/configuration, not the code. OTA only changes the .ino.bin, and not the entire filesystem on the ESP32.
 
 The error below was caused by wrong partitions, then by cached partitions. Fix: use min_spiffs and compile with `--clean`
 
@@ -67,13 +74,12 @@ Failed uploading: uploading error: exit status 1
 Suggest additional param for the compile command:
 `--build-property build.custom_partitions=min_spiffs`
 
-Might also need:
+You probably also need:
 `--build-property upload.maximum_size=3145728`
 
 where upload.maximum.size is from boards.txt
---
 
-Note that the system min_spiffs.csv matches the partitions.csv in the arduino build artifacts folder. If your partitions.csv doesn't match min_spiffs.csv, then you aren't using min_spiffs partitioning, and OTA will probably crash.
+Note that the system min_spiffs.csv matches the partitions.csv in the arduino build artifacts folder. If your partitions.csv doesn't match min_spiffs.csv, then you aren't using min_spiffs partitioning, and OTA will probably crash. Find your build partitions.csv by using the `-v` arg for `arduino-cli compile`, and dig through the verbose output.
 
 ```bash
 > cat /Users/zeus/Library/Arduino15/packages/esp32/hardware/esp32/3.0.4/tools/partitions/min_spiffs.csv
@@ -98,6 +104,7 @@ spiffs,   data, spiffs,  0x3D0000,0x20000,
 coredump, data, coredump,0x3F0000,0x10000,
 ```
 
+A big thanks to Michel for his work tracking down the OTA crash problem
 
 https://github.com/sigmdel/ESP32-CAM_OTA
 
