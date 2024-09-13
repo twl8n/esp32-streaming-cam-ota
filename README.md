@@ -6,7 +6,10 @@ https://github.com/twl8n/garden-rov-arduino
 
 Another potential use is a rear view or backup camera for car or truck.
 
-My camweb1 sketch is minimal camera video streaming via wifi to a web browser. It is nice to be able to update the ESP32 via WiFi. Once the camera is installed in the UGV, there won't be a usb cable connection to my desktop computer.
+My camweb1 sketch is minimal camera video streaming via wifi to a web browser. It is nice to be able to update the ESP32 via WiFi instead of via a usb cable. Once the camera is installed in the UGV, there won't be a usb cable connection to my desktop computer.
+
+Hook the esp32 camera to the computer via usb, upload an OTA-capable sketch. Unplug the ESP32, mount it
+somewhere (like on a robot). Give it 5V power. Now do updates via OTA and wifi.
 
 
 ### TODO
