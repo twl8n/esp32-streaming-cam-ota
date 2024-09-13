@@ -1,4 +1,4 @@
-#### A minimal ESP32 camera server with OTA (over the air) updates.
+### A minimal ESP32 camera server with OTA (over the air) updates.
 
 I need video streaming with low latency. One use is for the gardenbot UGV.
 
@@ -6,7 +6,7 @@ https://github.com/twl8n/garden-rov-arduino
 
 Another potential use is a rear view or backup camera.
 
-#### TODO
+### TODO
 
 - clean up test code, especially psram
 x enable OTA 
@@ -22,11 +22,11 @@ x enable OTA
 - are there any advantages to running freeRTOS? Like being able to run the camera on one core, and ota on the
   second core?
 
-#### Command line OTA (over the air) wifi update
+### Command line OTA (over the air) wifi update
 
 Note that I'm using the arduino-cli. Text is more obvious, easier to document (I think), and easier to automate. All the arduino-cli commands have some equivalent in the Arduino IDE. My suggestion: learn to use Emacs, learn to use the command line, learn/use a good Linux/unix/BSD shell like zsh or bash. These examples are from a Mac, running zsh, but bash is close enough.
 
-#### The OTA crash and solution
+### The OTA crash and solution
 
 Adding OTA to CameraWebServer crashes when the OTA tries to update the ESP32. Here is the diagnosis and fix.
 
@@ -38,7 +38,7 @@ Remove the file `partitions.csv` from the local folder, then compile with `--cle
 arduino-cli compile --clean -v -e --no-color --fqbn esp32:esp32:esp32cam --build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728 .
 ```
 
-#### Detailed explanation
+### Detailed explanation
 
 The CameraWebServer example has a local file `partitions.csv` for unknown reasons. Perhaps to make room to save images or videos, or to emulate the `huge_app` partition. In any case, a local `partitions.csv` overrides `--build-property` __and__ the compiler defaults to caching build artifacts (intermediate files created during compile and link).
 
@@ -171,7 +171,7 @@ Nice example of `espota.py`:
 
 https://github.com/skx/esp8266/blob/master/d1-helsinki-tram-times/d1-helsinki-tram-times.ino#L581
 
-#### web ota via web browser not command line
+### web ota via web browser not command line
 
 Over the air updates, OTAWebUpdate, requires a web browser on the host computer. (As opposed to command line or python script as BasicOTA above.)
 
@@ -189,7 +189,7 @@ A poor explanation:
 ~/src/arduino-esp32/libraries/Update/src/HttpsOTAUpdate.cpp
 
 
-#### wifi soft access point
+### wifi soft access point
 
 It might be as easy as the code snippet below. However, the desktop client won't be able to connect to this AP and to another wifi router at the same time. Since my use case is a unmanned ground vehicle (UGV) controlled via wifi from a computer, the whole UGV system would have to share the same access point. My first generation UGV is controlled via ssh to a RPi running arduino-cli monitor, and the UGV send video from multiple camera streaming through wifi. A soft AP makes no sense. 
 
