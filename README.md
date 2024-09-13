@@ -272,7 +272,7 @@ usage: esptool [-h]
                {load_ram,dump_mem,read_mem,write_mem,write_flash,run,image_info,make_image,elf2image,read_mac,chip_id,flash_id,read_flash_status,write_flash_status,read_flash,verify_flash,erase_flash,erase_region,merge_bin,get_security_info,version}
 
 
-# camera settings from the camerawebserver app
+### camera settings from the camerawebserver app
 
 framesize_t frame_size;         /*!< Size of the output image: FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA  */
 int jpeg_quality;               /*!< Quality of JPEG output. 0-63 lower means higher quality  */
