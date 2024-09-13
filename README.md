@@ -211,7 +211,7 @@ const char *password = "yourPassword";
   IPAddress myIP = WiFi.softAPIP();
 ```
 
-#### camera notes
+### camera notes
 
 Is it interesting that no matter how the camera is rotated, the image remains the same orientation?
 
@@ -234,7 +234,7 @@ arduino-cli upload -v -p /dev/cu.usbserial-210 --fqbn esp32:esp32:esp32cam:Uploa
 does 460800 work for monitor?
 arduino-cli monitor -p /dev/cu.usbserial-210 --config 460800 -b esp32:esp32:esp32cam
 
-# random cli notes
+### random cli notes
 
 Change baud rate to 460800 which is supported by the esp32.
 
@@ -312,7 +312,7 @@ https://techtutorialsx.com/2017/11/03/esp32-arduino-websocket-server-over-soft-a
 
 --
 
-#### more than you wanted to know about esp32 wifi
+### more than you wanted to know about esp32 wifi
 
 https://randomnerdtutorials.com/esp32-useful-wi-fi-functions-arduino/
 
