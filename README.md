@@ -4,7 +4,7 @@ I need video streaming with low latency. One use is for the gardenbot UGV.
 
 https://github.com/twl8n/garden-rov-arduino
 
-Another potential use is a rear view or backup camera.
+Another potential use is a rear view or backup camera for car or truck.
 
 ### TODO
 
@@ -24,6 +24,8 @@ x enable OTA
 
 ### Command line OTA (over the air) wifi update
 
+My camweb1 is a minimal camera video streaming via wifi sketch. It is nice to be able to update the ESP32 via WiFi. Once the camera is installed in the UGV, there won't be a usb cable connection to my desktop computer.
+
 Note that I'm using the arduino-cli. Text is more obvious, easier to document (I think), and easier to automate. All the arduino-cli commands have some equivalent in the Arduino IDE. My suggestion: learn to use Emacs, learn to use the command line, learn/use a good Linux/unix/BSD shell like zsh or bash. These examples are from a Mac, running zsh, but bash is close enough.
 
 ### The OTA crash and solution
@@ -41,6 +43,12 @@ arduino-cli compile --clean -v -e --no-color --fqbn esp32:esp32:esp32cam --build
 ### Detailed explanation
 
 The CameraWebServer example has a local file `partitions.csv` for unknown reasons. Perhaps to make room to save images or videos, or to emulate the `huge_app` partition. In any case, a local `partitions.csv` overrides `--build-property` __and__ the compiler defaults to caching build artifacts (intermediate files created during compile and link).
+
+This is the boards.txt file at the Espressif github site. There is also a local copy on your machine as part of the Arduino IDE (or arduino-cli).
+
+https://github.com/espressif/arduino-esp32/blob/master/boards.txt#L28071
+
+I have not compared `huge_app` with the partitions.csv in the CameraWebServer sketch.
 
 Compile with `--clean` if you change `--build-properties` because some files are cached. This is true of partitions.csv
 
@@ -104,11 +112,13 @@ spiffs,   data, spiffs,  0x3D0000,0x20000,
 coredump, data, coredump,0x3F0000,0x10000,
 ```
 
+----
+
 A big thanks to Michel for his work tracking down the OTA crash problem
 
 https://github.com/sigmdel/ESP32-CAM_OTA
 
-https://github.com/espressif/arduino-esp32/blob/master/boards.txt#L28071
+---
 
 The file platforms.txt in root (or local?) directory controls build config.
 
