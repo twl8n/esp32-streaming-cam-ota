@@ -1,6 +1,6 @@
 ### A minimal ESP32 camera server with OTA (over the air) updates.
 
-I need video streaming with low latency. One use is for the gardenbot UGV.
+I need video streaming with low latency. One use is for the gardenbot UGV (unmanned ground vehicle).
 
 https://github.com/twl8n/garden-rov-arduino
 
@@ -9,23 +9,25 @@ Another potential use is a rear view or backup camera for car or truck.
 My camweb1 sketch is minimal camera video streaming via wifi to a web browser. It is nice to be able to update the ESP32 via WiFi instead of via a usb cable. Once the camera is installed in the UGV, there won't be a usb cable connection to my desktop computer.
 
 Hook the esp32 camera to the computer via usb, upload an OTA-capable sketch. Unplug the ESP32, mount it
-somewhere (like on a robot). Give it 5V power. Now do updates via OTA and wifi.
+somewhere (like on a robot UGV). Give it 5V power. Now do updates via OTA and wifi.
 
 
 ### TODO
 
-- clean up test code, especially psram
-x enable OTA 
-  - arduino cli export compiled binary instead of -e which exports all build artifacts.
+- Clean up test code, especially psram
+x Enable OTA 
+- (not possible) arduino cli export compiled binary instead of -e which exports all build artifacts.
     like arduino ide sketch > export compiled binary
-- if we use OTA, is the programmer shield necessary? (aside from supplying 5V via USB)
-- can we add some html with status to the output stream, as both multipart stream and HTML?
-  (Perhaps yes, using multiple http handlers like:
+- Is `compile --output-dir` better than `compile -e`?
+- If we use OTA, is the programmer shield necessary? (aside from supplying 5V via USB)
+- Can we add some html with status to the output stream, as both multipart stream and HTML?
+  Perhaps yes, using multiple http handlers like:
   ~/src/arduino-esp32/libraries/ESP32/examples/Camera/CameraWebServer/
-- any point in websockets?
-- (no) change to the esp32 being a wifi access point (AP)
-- (not practical) advertise the esp32 via ZeroConf/bonjour or something? (if connected to the wifi LAN)
-- are there any advantages to running freeRTOS? Like being able to run the camera on one core, and ota on the
+  It won't be a minimal camera server.
+- (probably not) Any point in websockets?
+- (no) Change to the esp32 being a wifi access point (AP)
+- (not practical) Advertise the esp32 via ZeroConf/bonjour or something? (if connected to the wifi LAN)
+- Are there any advantages to running freeRTOS? Like being able to run the camera on one core, and ota on the
   second core?
 
 ### Command line OTA (over the air) wifi update
@@ -34,7 +36,8 @@ Note that I'm using the arduino-cli. Text is more obvious, easier to document (I
 
 ### The OTA crash and solution
 
-Adding OTA to CameraWebServer crashes when the OTA tries to update the ESP32. Here is the diagnosis and fix.
+Adding OTA to the Arduino example CameraWebServer crashes when the OTA tries to update the ESP32. Here is the
+diagnosis and fix. Sadly, my camweb1 cribbed code from CameraWebServer, so my code crashed as well. Until I sorted out the fix.
 
 tldr;
 
@@ -44,7 +47,7 @@ Remove the file `partitions.csv` from the local folder, then compile with `--cle
 arduino-cli compile --clean -v -e --no-color --fqbn esp32:esp32:esp32cam --build-property build.partitions=min_spiffs --build-property upload.maximum_size=3145728 .
 ```
 
-### Detailed explanation
+### Detailed OTA crash fix explanation
 
 The CameraWebServer example has a local file `partitions.csv` for unknown reasons. Perhaps to make room to save images or videos, or to emulate the `huge_app` partition. In any case, a local `partitions.csv` overrides `--build-property` __and__ the compiler defaults to caching build artifacts (intermediate files created during compile and link).
 
@@ -174,9 +177,9 @@ Nice example of `espota.py`:
 
 https://github.com/skx/esp8266/blob/master/d1-helsinki-tram-times/d1-helsinki-tram-times.ino#L581
 
-### web ota via web browser not command line
+### Web ota via web browser not command line
 
-Over the air updates, OTAWebUpdate, requires a web browser on the host computer. (As opposed to command line or python script as BasicOTA above.)
+Over the air updates, OTAWebUpdate, requires a web browser on the host computer. (As opposed to command line or python script as BasicOTA above.) I'm using the arduino-cli command line, so "web ota" isn't useful to me at this time.
 
 Compile and upload a web ota update the usual way (Arduino IDE, or arduino-cli) , add some web ota code to any sketch you want to upload, compile sketch and export binary, use a web browser to upload the binary. Web browser based, not command line (although maybe `curl` or `wget` could make it command line?).
 
