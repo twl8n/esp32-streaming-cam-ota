@@ -79,13 +79,6 @@ Uploading: [                                                            ] 0%
 Failed uploading: uploading error: exit status 1
 ```
 
-Suggest additional param for the compile command:
-`--build-property build.custom_partitions=min_spiffs`
-
-You probably also need:
-`--build-property upload.maximum_size=3145728`
-
-where upload.maximum.size is from boards.txt
 
 Note that the system min_spiffs.csv matches the partitions.csv in the arduino build artifacts folder. If your partitions.csv doesn't match min_spiffs.csv, then you aren't using min_spiffs partitioning, and OTA will probably crash. Find your build partitions.csv by using the `-v` arg for `arduino-cli compile`, and dig through the verbose output.
 
@@ -112,6 +105,14 @@ spiffs,   data, spiffs,  0x3D0000,0x20000,
 coredump, data, coredump,0x3F0000,0x10000,
 ```
 
+Verbose compile can be useful for learning about the build process. The output below reveals that partitions.csv in the sketch directory take precedence. When (or if) a partitions.csv file is found, it is copied into the private Arduino build directory for the sketch. This "feature" is a major reason why my initial OTA attempts crashed.
+
+```bash
+/usr/bin/env bash -c "[ ! -f \"/Users/zeus/src/esp32-cam-min/camweb1\"/partitions.csv ] || cp -f \"/Users/zeus/src/esp32-cam-min/camweb1\"/partitions.csv \"/private/var/folders/2m/m49tydvj599cf1yv8nk7f82m0000gn/T/arduino/sketches/17A8CF01606570ED251909C235DA3B34\"/partitions.csv"
+/usr/bin/env bash -c "[ -f \"/private/var/folders/2m/m49tydvj599cf1yv8nk7f82m0000gn/T/arduino/sketches/17A8CF01606570ED251909C235DA3B34\"/partitions.csv ] || [ ! -f \"/Users/zeus/Library/Arduino15/packages/esp32/hardware/esp32/3.0.4/variants/esp32\"/partitions.csv ] || cp \"/Users/zeus/Library/Arduino15/packages/esp32/hardware/esp32/3.0.4/variants/esp32\"/partitions.csv \"/private/var/folders/2m/m49tydvj599cf1yv8nk7f82m0000gn/T/arduino/sketches/17A8CF01606570ED251909C235DA3B34\"/partitions.csv"
+```
+
+
 ----
 
 A big thanks to Michel for his work tracking down the OTA crash problem
@@ -135,18 +136,11 @@ app0,     app,   ota_0,   0x10000,  0x3d0000,
 fr,       data,        ,  0x3e0000, 0x20000,
 ```
 
-After adding partitions.csv to sketch directory, `upload -v` is the same as always, so I think partitions.csv is being ignored. 
+Starting ota update crashed the controller. Still crashing after using an esp32 example vs an esp8266 example 
 
-"/Users/zeus/Library/Arduino15/packages/esp32/tools/esptool_py/4.6/esptool" --chip esp32 --port "/dev/cu.usbserial-210" --baud 460800  --before default_reset --after hard_reset write_flash  -z --flash_mode keep --flash_freq keep --flash_size keep 0x1000 "build/esp32.esp32.esp32cam/camweb1.ino.bootloader.bin" 0x8000 "build/esp32.esp32.esp32cam/camweb1.ino.partitions.bin" 0xe000 "/Users/zeus/Library/Arduino15/packages/esp32/hardware/esp32/3.0.4/tools/partitions/boot_app0.bin" 0x10000 "build/esp32.esp32.esp32cam/camweb1.ino.bin"
+`abort() was called at PC 0x40081c61 on core 1`
 
-starting ota update crashed:
-
-Still crashing after using an esp32 example vs an esp8266 example 
-2024-09-10 abort() was called at PC 0x40081c61 on core 1
-
-2024-09-10 abort() was called at PC 0x40081c61 on core 1
-
-Maybe. The ArduinoOTA function is listening on port 8266 (or any port you chose, just not port 80 if your sketch is running a web server). Your sketch and future sketches __must__ contain OTA boilerplate code, or the OTA will stop working.
+The ArduinoOTA function is listening on port 8266 (if you use ESP8266 code). Your sketch and future sketches __must__ contain OTA boilerplate code, or the OTA will stop working.
 
 Your sketch must call `ArduinoOTA.handle();` every interation. This won't usually impact performance (much?).
 
@@ -154,11 +148,6 @@ https://randomnerdtutorials.com/esp8266-ota-updates-with-arduino-ide-over-the-ai
 
 ~/src/arduino-esp32/libraries/ArduinoOTA/examples/BasicOTA/BasicOTA.ino
 ~/src/arduino-esp32/libraries/ArduinoOTA/src/ArduinoOTA.cpp
-
-Possible arduino-cli examples:
-arduino-cli upload --fqbn "esp8266:esp8266:nodemcuv2" --board-options "ip=lm6f" --protocol network --port "192.168.1.113" "OTA_Test"
-
-arduino-cli upload mySketch.ino -b esp8266:esp8266:d1_mini -p IP_ADDRESS
 
 Diagnose mdns issues:
 ~/.arduino15/packages/builtin/tools/mdns-discovery/1.0.9/mdns-discovery
@@ -235,51 +224,43 @@ arduino-cli compile -e --show-properties --no-color --fqbn esp32:esp32:esp32cam 
 arduino-cli upload -v -p /dev/cu.usbserial-210 --fqbn esp32:esp32:esp32cam --input-dir build/esp32.esp32.esp32cam
 
 add -v for verbose
+
+```bash
 Error during Upload: Unknown FQBN: getting build properties for board esp32:esp32:esp32cam: invalid option 'UploadSpeed'
 --fqbn esp32:esp32:esp32cam:UploadSpeed=460800
-esptool_py defaults to chaning the baud to 460800, so no point in trying to change the fqbn options
+```
 
-arduino-cli upload -v -p /dev/cu.usbserial-210 --fqbn esp32:esp32:esp32cam:UploadSpeed=460800 --input-dir build/esp32.esp32.esp32cam
+esptool_py defaults to changing the baud to 460800, so no point in trying to change the fqbn options
+
+`arduino-cli upload -v -p /dev/cu.usbserial-210 --fqbn esp32:esp32:esp32cam:UploadSpeed=460800 --input-dir build/esp32.esp32.esp32cam`
 
 does 460800 work for monitor?
-arduino-cli monitor -p /dev/cu.usbserial-210 --config 460800 -b esp32:esp32:esp32cam
+`arduino-cli monitor -p /dev/cu.usbserial-210 --config 460800 -b esp32:esp32:esp32cam`
 
 ### random cli notes
 
 Change baud rate to 460800 which is supported by the esp32.
 
 https://github.com/arduino/arduino-cli/issues/824
-So the correct FQBN is esp32:esp32:esp32:UploadSpeed=115200.
 
-menu.EraseFlash.all=Enabled
-menu.EraseFlash.all.upload.erase_cmd=-e
-menu.EraseFlash.none=Disabled
-menu.EraseFlash.none.upload.erase_cmd=
+which suggests that the correct FQBN is `esp32:esp32:esp32:UploadSpeed=115200`, but that didn't work (see error above).
 
-tools.esptool_py.program.pattern_args=--chip esp32 --port "{serial.port}" --baud 460800  --before default_reset --after hard_reset write_flash -z --flash_mode keep --flash_freq keep --flash_size keep 0x10000 "/private/var/folders/2m/m49tydvj599cf1yv8nk7f82m0000gn/T/arduino/sketches/17A8CF01606570ED251909C235DA3B34/camweb1.ino.bin"
+Using verbose upload `arduino-cli upload -v` reveals working esptool_py (esptool) commands. 
 
-tools.esptool_py.upload.network_pattern={network_cmd} -i "{serial.port}" -p "{network.port}" "--auth={network.password}" -f "/private/var/folders/2m/m49tydvj599cf1yv8nk7f82m0000gn/T/arduino/sketches/17A8CF01606570ED251909C235DA3B34/camweb1.ino.bin"
-
-
+```bash
 "/Users/zeus/Library/Arduino15/packages/esp32/tools/esptool_py/4.6/esptool" --chip esp32 --port "/dev/cu.usbserial-210" --baud 460800  --before default_reset --after hard_reset write_flash  -z --flash_mode keep --flash_freq keep --flash_size keep 0x1000 "build/esp32.esp32.esp32cam/camweb1.ino.bootloader.bin" 0x8000 "build/esp32.esp32.esp32cam/camweb1.ino.partitions.bin" 0xe000 "/Users/zeus/Library/Arduino15/packages/esp32/hardware/esp32/3.0.4/tools/partitions/boot_app0.bin" 0x10000 "build/esp32.esp32.esp32cam/camweb1.ino.bin"
+```
 
-It might be possible to only write fewer files to flask, like only camweb1.ino.bin, but I never tried it. 
+It might be possible to only write fewer files to flash, like only camweb1.ino.bin, but I never tried it. 
 Besides, the .ino.bin is the largest and slowest write:
-"/Users/zeus/Library/Arduino15/packages/esp32/tools/esptool_py/4.6/esptool" --chip esp32 --port "/dev/cu.usbserial-210" --baud 460800  --before default_reset --after hard_reset write_flash  -z --flash_mode keep --flash_freq keep --flash_size keep 0x10000 "build/esp32.esp32.esp32cam/camweb1.ino.bin"
 
---no-stub             Disable launching the flasher stub, only talk to ROM bootloader. Some features will not be available.
+Docs say:
+
+`--no-stub             Disable launching the flasher stub, only talk to ROM bootloader. Some features will not be available.`
 
 https://stackoverflow.com/questions/65749587/what-does-stub-mean-in-the-context-of-esp32-and-esptool-option-no-stub
 
-Using --no-stub you will be using the original ESP32 bootloader, which is known to be slower at flashing the program and at some other operations. There are some commands which can only be used in the esptool bootloader, but if you are not using any optional commands to boot your code, it is safe to use --no-stub
-
-
-usage: esptool [-h]
-               [--chip {auto,esp8266,esp32,esp32s2,esp32s3beta2,esp32s3,esp32c3,esp32c6beta,esp32h2beta1,esp32h2beta2,esp32c2,esp32c6,esp32h2}]
-               [--port PORT] [--baud BAUD] [--before {default_reset,usb_reset,no_reset,no_reset_no_sync}]
-               [--after {hard_reset,soft_reset,no_reset,no_reset_stub}] [--no-stub] [--trace] [--override-vddsdio [{1.8V,1.9V,OFF}]]
-               [--connect-attempts CONNECT_ATTEMPTS]
-               {load_ram,dump_mem,read_mem,write_mem,write_flash,run,image_info,make_image,elf2image,read_mac,chip_id,flash_id,read_flash_status,write_flash_status,read_flash,verify_flash,erase_flash,erase_region,merge_bin,get_security_info,version}
+`Using --no-stub you will be using the original ESP32 bootloader, which is known to be slower at flashing the program and at some other operations. There are some commands which can only be used in the esptool bootloader, but if you are not using any optional commands to boot your code, it is safe to use --no-stub`
 
 
 ### camera settings from the camerawebserver app
@@ -312,15 +293,16 @@ window size 800 600
 output size 320 240
 
 
--- 
+--- 
 
-Eventually run as AP, maybe websockets over AP:
+It doesn't make sense in my usecase for the ESP32 to be an AP (wifi access point). But if you want to run as
+AP, or maybe websockets over AP:
 
 https://github.com/Links2004/arduinoWebSockets/blob/master/examples/esp32/WebSocketServer/WebSocketServer.ino
 
 https://techtutorialsx.com/2017/11/03/esp32-arduino-websocket-server-over-soft-ap/
 
---
+---
 
 ### more than you wanted to know about esp32 wifi
 
