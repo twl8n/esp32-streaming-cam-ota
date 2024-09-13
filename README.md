@@ -15,20 +15,21 @@ somewhere (like on a robot UGV). Give it 5V power. Now do updates via OTA and wi
 ### TODO
 
 - Clean up test code, especially psram
-x Enable OTA 
-- (not possible) arduino cli export compiled binary instead of -e which exports all build artifacts.
-    like arduino ide sketch > export compiled binary
 - Is `compile --output-dir` better than `compile -e`?
-- If we use OTA, is the programmer shield necessary? (aside from supplying 5V via USB)
+- Are there any advantages to running freeRTOS? Like being able to run the camera on one core, and ota on the
+  second core?
 - Can we add some html with status to the output stream, as both multipart stream and HTML?
   Perhaps yes, using multiple http handlers like:
   ~/src/arduino-esp32/libraries/ESP32/examples/Camera/CameraWebServer/
   It won't be a minimal camera server.
+- If we use OTA, is the programmer shield necessary? (Aside from supplying 5V via USB.)
+x Enable OTA 
 - (probably not) Any point in websockets?
 - (no) Change to the esp32 being a wifi access point (AP)
 - (not practical) Advertise the esp32 via ZeroConf/bonjour or something? (if connected to the wifi LAN)
-- Are there any advantages to running freeRTOS? Like being able to run the camera on one core, and ota on the
-  second core?
+- (not possible) arduino cli export compiled binary instead of -e which exports all build artifacts.
+    like arduino ide sketch > export compiled binary
+
 
 ### Command line OTA (over the air) wifi update
 
