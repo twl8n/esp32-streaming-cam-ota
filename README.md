@@ -281,9 +281,66 @@ framesize_t frame_size;         /*!< Size of the output image: FRAMESIZE_ + QVGA
 int jpeg_quality;               /*!< Quality of JPEG output. 0-63 lower means higher quality  */
 size_t fb_count;                /*!< Number of frame buffers to be allocated. If more than one, then each frame will be acquired (double speed)  */
 
+https://stackoverflow.com/questions/59866735/converting-html-page-into-array-of-hexadecimal-values-for-use-in-an-arduino-serv
+
+less -N camera_index.h    
+      1 //File: index_ov2640.html.gz, Size: 6787
+      2 #define index_ov2640_html_gz_len 6787
+      3 const uint8_t index_ov2640_html_gz[] = {
+      4   0x1F, 0x8B, 0x08, 0x08, 0x23, 0xFC, 0x69, 0x5E, 0x00, 0x03, 0x69, 0x6E, 0x64, 0x65, 0x78, 0x5F, 0x6
+      ...
+          968 E, 0x72, 0x0B, 0x89, 0x42, 0x10, 0x01, 0x00
+          969 };
+
+# linux
+tail -n +4 camera_index.h| head -n -1 > camera_hex.txt
+
+# mac, needs `brew install coreutils` to get gnu head aka ghead because Macos `head` is non-standard.
+tail -n +4 camera_index.h| ghead -n -1 > camera_hex.txt
+xxd -r -p camera_hex.text index_ov2640.html.gz
+gunzip index_ov2640.html.gz
+
+
+Camera web server without the gz compressed .h files like index_ov2640_html_gz found in camera_index.h:
+
+https://github.com/easytarget/esp32-cam-webserver
+
+Maybe documented at:
+
+https://randomnerdtutorials.com/esp32-cam-ov2640-camera-settings/
+https://heyrick.eu/blog/index.php?diary=20210418&keitai=0
+
+XGA 1024x768, SXGA 1280x1024, and UXGA 1600x1200: read all pixels, best image rendition
+VGA 640×480 and SVGA 800×600: read every other pixel, less data but poorer color
+CIF (400×296): read every fourth pixel
+
+s->set_brightness(s, 0);     // -2 to 2
+s->set_contrast(s, 0);       // -2 to 2
+s->set_saturation(s, 0);     // -2 to 2
+s->set_special_effect(s, 0); // 0 to 6 (0 - No Effect, 1 - Negative, 2 - Grayscale, 3 - Red Tint, 4 - Green Tint, 5 - Blue Tint, 6 - Sepia)
+s->set_whitebal(s, 1);       // 0 = disable , 1 = enable
+s->set_awb_gain(s, 1);       // 0 = disable , 1 = enable
+s->set_wb_mode(s, 0);        // 0 to 4 - if awb_gain enabled (0 - Auto, 1 - Sunny, 2 - Cloudy, 3 - Office, 4 - Home)
+s->set_exposure_ctrl(s, 1);  // 0 = disable , 1 = enable
+// AEC DSP enable improves image brightness
+s->set_aec2(s, 0);           // 0 = disable , 1 = enable, suggest enabled 
+s->set_ae_level(s, 0);       // -2 to 2 tweak exposure when AEC is enabled
+s->set_aec_value(s, 300);    // 0 to 1200, exposure??  disable AEC to use this. 
+s->set_gain_ctrl(s, 1);      // 0 = disable , 1 = enable AGC? Suggest enabled always.
+s->set_agc_gain(s, 0);       // 0 to 30 brighter with more noise
+s->set_gainceiling(s, (gainceiling_t)0);  // 0 to 6, enable AGC to use this
+s->set_bpc(s, 0);            // 0 = disable , 1 = enable black pixel correction, enable if you have bad pixels
+s->set_wpc(s, 1);            // 0 = disable , 1 = enable white pixel correction, enable if you have bad pixels
+s->set_raw_gma(s, 1);        // 0 = disable , 1 = enable enabled sort of is brighten
+s->set_lenc(s, 1);           // 0 = disable , 1 = enable
+s->set_hmirror(s, 0);        // 0 = disable , 1 = enable
+s->set_vflip(s, 0);          // 0 = disable , 1 = enable
+s->set_dcw(s, 1);            // 0 = disable , 1 = enable downsize
+s->set_colorbar(s, 0);       // 0 = disable , 1 = enable
+
 resolution vga 640x480
 quality 4
-brightness 0 or +1
+brightness 0 or +1 (-2 to 2)
 contrast 0
 saturation 0
 awb off

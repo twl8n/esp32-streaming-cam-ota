@@ -214,6 +214,7 @@ void setup() {
   Serial.begin(115200);
   Serial.setDebugOutput(false);
   
+  // https://github.com/espressif/esp32-camera/blob/master/driver/include/esp_camera.h
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -236,9 +237,8 @@ void setup() {
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG; 
   
-  // CameraWebServer.ino example says:
-  // drop down frame size for higher initial frame rate
-  // s->set_framesize(s, FRAMESIZE_QVGA);
+  // s->set_framesize(s, FRAMESIZE_XGA); // 10 heaven only knows where this is defined
+  config.frame_size = FRAMESIZE_XGA;
 
   // Unclear if svga is faster. Maybe it is?
   // clean up this section. We have psram, but we want lower lag and will compromise to get it
@@ -260,6 +260,15 @@ void setup() {
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
+
+  // After camera init, change some settings not available in config
+  sensor_t *s = esp_camera_sensor_get();
+  s->set_aec2(s, 1);
+  s->set_brightness(s, 1);
+  s->set_bpc(s, 1); // enable
+  s->set_wpc(s, 1);
+
+
   // Wi-Fi connection
   char pbuff[255]; // init string var?
   sprintf(pbuff,"ssid: %s pass: %s\n", ssid, password); 
